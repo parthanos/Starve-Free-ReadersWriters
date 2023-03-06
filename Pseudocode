@@ -1,0 +1,53 @@
+// Initialize variables
+count_readers = 0
+is_writing = false
+queue = empty queue
+mutex = create mutex
+
+// Reader function
+function reader() {
+    // Enter queue and wait
+    mutex.lock()
+    queue.enqueue('read')
+    while (queue.front() != 'read' || is_writing) {
+        mutex.unlock()
+        mutex.lock()
+    }
+    queue.dequeue()
+    count_readers += 1
+    mutex.unlock()
+
+    // Read data
+
+    mutex.lock()
+    count_readers -= 1
+    if (count_readers == 0) {
+        is_writing = false
+    }
+    mutex.unlock()
+}
+
+
+
+// Writer function
+function writer() {
+    // Enter queue and wait
+    mutex.lock()
+    queue.enqueue('write')
+    while (queue.front() != 'write' || count_readers > 0 || is_writing) {
+        mutex.unlock()
+        mutex.lock()
+    }
+    queue.dequeue()
+    is_writing = true
+    mutex.unlock()
+
+    // Write data
+
+    mutex.lock()
+    is_writing = false
+    if (!queue.is_empty() && queue.front() == 'write') {
+        is_writing = true
+    }
+    mutex.unlock()
+}
